@@ -1,0 +1,783 @@
+/* OpenStreetMapPage.css */
+
+/* Reset and Base Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+.open-street-map-page {
+  font-family: 'Roboto', Arial, sans-serif;
+  color: #333;
+  background-color: #f8f9fa;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Map Container */
+.map-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
+
+/* Leaflet Zoom Controls (Top Left on Desktop, Hidden on Mobile/Tablet) */
+.leaflet-control-zoom {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.loading-spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-overlay p {
+  margin-top: 10px;
+  font-size: 16px;
+  color: #333;
+}
+
+/* Search Bar */
+.search-bar {
+  position: absolute;
+  top: 10px;
+  left: 60px; /* Positioned to the right of zoom controls on desktop */
+  max-width: 500px;
+  z-index: 1000;
+}
+
+.search-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.search-input-container input {
+  width: 100%;
+  padding: 12px 20px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  outline: none;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.search-input-container input:focus {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-color: #007bff;
+}
+
+/* Suggestions Dropdown */
+.suggestions-dropdown {
+  list-style: none;
+  margin: 5px 0 0 0;
+  padding: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1001;
+}
+
+.suggestions-dropdown li {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  cursor: pointer;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.2s;
+}
+
+.suggestions-dropdown li:last-child {
+  border-bottom: none;
+}
+
+.suggestions-dropdown li:hover {
+  background-color: #f1f3f5;
+}
+
+.suggestion-icon {
+  margin-right: 10px;
+  color: #007bff;
+  font-size: 18px;
+}
+
+.suggestion-content {
+  flex: 1;
+}
+
+.place-name {
+  font-weight: 500;
+  font-size: 16px;
+  color: #333;
+}
+
+.place-details {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.suggestion-distance {
+  font-size: 14px;
+  color: #6c757d;
+  white-space: nowrap;
+}
+
+/* Show Zones Button (Bottom Left, Icon Style) */
+.show-zones-button {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  z-index: 1000;
+}
+
+.show-zones-button button {
+  width: 40px;
+  height: 40px;
+  font-size: 18px;
+  color: #fff;
+  background: linear-gradient(35deg, #024083, #007bff, #f51229, #810707);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative; /* For positioning the pseudo-element */
+  transition: transform 0.1s;
+}
+
+.show-zones-button button:hover {
+  transform: translateY(-1px);
+}
+
+.show-zones-button button.selected::after {
+  content: '';
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  background-color: #000;
+  border-radius: 50%;
+  z-index: 1; /* Behind the icon */
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.8);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.show-zones-button button i {
+  z-index: 2; /* Ensure the icon is above the black circle */
+}
+
+/* Place Details Box (Vertical, Right Side, Toggles Right to Left) */
+.place-details-box {
+  position: absolute;
+  top: 10px;
+  right: 0;
+  width: 350px;
+  height: 180px; /* Fixed height to ensure proper stacking */
+  background: #fff;
+  border-radius: 10px 0 0 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  display: flex;
+  transition: width 0.3s ease;
+}
+
+.place-details-box.collapsed {
+  width: 40px;
+  overflow: hidden;
+}
+
+.place-details-box.expanded {
+  width: 350px;
+}
+
+.place-details-box .card-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 100%;
+  background: linear-gradient(180deg, #0056b3, #dc3545);
+  border-radius: 10px 0 0 10px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  color: #fff;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  padding: 10px 5px;
+  transition: background-color 0.2s;
+}
+
+.place-details-box .card-header:hover {
+  background: #e9ecef;
+}
+
+.place-details-box .toggle-icon {
+  font-size: 12px;
+  color: #aeecf7;
+  margin-top: 5px;
+}
+
+.place-details-box .card-content {
+  padding: 15px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.place-details-box h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.place-details-box p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.place-details-box .buttons {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.itinerary-btn,
+.favorite-btn,
+.share-btn {
+  padding: 8px 15px;
+  font-size: 14px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  min-width: 80px;
+}
+
+.itinerary-btn {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.itinerary-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.itinerary-btn:disabled {
+  background-color: #b0c4de;
+  cursor: not-allowed;
+}
+
+.favorite-btn,
+.share-btn {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.favorite-btn:hover,
+.share-btn:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+/* Route Information Box (Vertical, Right Side, Below Place Details, Toggles Right to Left) */
+.route-info-box {
+  position: absolute;
+  top: 200px; /* Adjusted to be below place-details-box */
+  right: 0;
+  width: 350px;
+  height: 300px; /* Fixed height to ensure proper stacking */
+  background: #fff;
+  border-radius: 10px 0 0 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  display: flex;
+  transition: width 0.3s ease;
+}
+
+.route-info-box.collapsed {
+  width: 40px;
+  overflow: hidden;
+}
+
+.route-info-box.expanded {
+  width: 350px;
+}
+
+.route-info-box .card-header {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 100%;
+  background: linear-gradient(180deg, #dc3545, #dc3545 ,#0056b3);
+  border-radius: 10px 0 0 10px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+  color: #fff;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  padding: 10px 5px;
+  transition: background-color 0.2s;
+}
+
+.route-info-box .card-header:hover {
+  background: #e9ecef;
+}
+
+.route-info-box .toggle-icon {
+  font-size: 12px;
+  color: #aeecf7;
+  margin-top: 5px;
+}
+
+.route-info-box .card-content {
+  padding: 15px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.route-summary {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.risk-stats {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.risk-stats span {
+  font-weight: 500;
+}
+
+.risk-stats .safe-path-label {
+  color: #28a745;
+  font-weight: 600;
+}
+
+/* Route Buttons (Itinéraire 1, Itinéraire 2, etc.) */
+.tab-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.route-btn {
+  padding: 8px 15px;
+  font-size: 14px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  min-width: 100px;
+}
+
+.route-btn.high-risk {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+.route-btn.medium-risk {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.route-btn.low-risk {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.route-btn.unknown-risk {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.route-btn.safe-path {
+  background-color: #007bff;
+  color: #fff;
+  font-weight: 600;
+}
+
+.route-btn:hover {
+  transform: translateY(-1px);
+}
+
+.route-btn.active {
+  box-shadow: 0 0 0 2px #007bff;
+}
+
+/* Route Instructions */
+.route-instructions {
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+  padding-right: 8px;
+}
+
+.instruction-item {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.instruction-item span {
+  display: block;
+}
+
+/* Tab Content Buttons */
+.tab-content .buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.info-btn,
+.details-btn {
+  padding: 8px 15px;
+  font-size: 14px;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  min-width: 100px;
+}
+
+.info-btn {
+  background-color: #6c757d;
+  color: #fff;
+}
+
+.info-btn:hover {
+  background-color: #5a6268;
+  transform: translateY(-1px);
+}
+
+.details-btn {
+  background-color: #007bff;
+  color: #fff;
+}
+
+.details-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+/* Mobile and Tablet Responsiveness */
+@media (max-width: 768px) {
+  /* Hide Zoom Controls on Mobile/Tablet */
+  .leaflet-control-zoom {
+    display: none;
+  }
+
+  .search-bar {
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    max-width: none;
+  }
+
+  .search-input-container input {
+    padding: 10px 15px;
+    font-size: 14px;
+  }
+
+  .suggestions-dropdown {
+    max-height: 200px;
+  }
+
+  .suggestions-dropdown li {
+    padding: 10px 12px;
+  }
+
+  .place-name {
+    font-size: 14px;
+  }
+
+  .place-details,
+  .suggestion-distance {
+    font-size: 12px;
+  }
+
+  .show-zones-button {
+    bottom: 5px;
+    left: 5px;
+  }
+
+  .show-zones-button button {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  /* Adjust Place Details and Route Info Boxes for Mobile */
+  .place-details-box {
+    top: 50px;
+    width: 300px;
+    height: 210px;
+  }
+
+  .place-details-box.collapsed {
+    width: 36px;
+  }
+
+  .place-details-box.expanded {
+    width: 300px;
+  }
+
+  .place-details-box .card-header {
+    width: 36px;
+    font-size: 12px;
+  }
+
+  .place-details-box .card-content {
+    padding: 10px;
+  }
+
+  .place-details-box h3 {
+    font-size: 16px;
+  }
+
+  .place-details-box p {
+    font-size: 12px;
+  }
+
+  .place-details-box .buttons {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .itinerary-btn,
+  .favorite-btn,
+  .share-btn {
+    padding: 8px;
+    font-size: 12px;
+    min-width: 100%;
+  }
+
+  .route-info-box {
+    top: 266px; /* Adjusted for smaller place-details-box height */
+    width: 300px;
+    height: 250px;
+  }
+
+  .route-info-box.collapsed {
+    width: 36px;
+  }
+
+  .route-info-box.expanded {
+    width: 300px;
+  }
+
+  .route-info-box .card-header {
+    width: 36px;
+    font-size: 12px;
+  }
+
+  .route-info-box .card-content {
+    padding: 10px;
+  }
+
+  .route-summary {
+    font-size: 12px;
+  }
+
+  .risk-stats {
+    font-size: 11px;
+  }
+
+  .tab-buttons {
+    gap: 5px;
+  }
+
+  .route-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    min-width: 80px;
+  }
+
+  .route-instructions {
+    max-height: 100px;
+  }
+
+  .instruction-item {
+    font-size: 12px;
+  }
+
+  .info-btn,
+  .details-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    min-width: 80px;
+  }
+}
+
+/* Tablet Devices (577px to 768px) */
+@media (min-width: 577px) and (max-width: 768px) {
+  .search-bar {
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    max-width: none;
+  }
+
+  .place-details-box {
+    top: 50px;
+    width: 300px;
+    height: 210px;
+  }
+
+  .route-info-box {
+    top: 271px;
+    width: 300px;
+    height: 270px;
+  }
+}
+
+/* Desktop (min-width: 769px) */
+@media (min-width: 769px) {
+
+  .place-details-box {
+    top: 10px;
+    width: 350px;
+    height: 180px;
+  }
+
+  .route-info-box {
+    top: 200px;
+    width: 350px;
+    height: 320px;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.show-zones-button button.selected {
+  background-color: #0056b3;
+}
+
+/* Styles pour les contrôles de monitoring */
+.monitoring-controls {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+
+.monitoring-controls button {
+  padding: 10px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 5px;
+}
+
+.monitoring-controls button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Style pour le message d'écart */
+.deviation-message {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(255, 165, 0, 0.9);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  z-index: 1000;
+  font-weight: bold;
+}
